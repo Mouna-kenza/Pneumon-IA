@@ -33,7 +33,7 @@ def model(option,loaded_image):
                 
     elif option == "Decision Tree": 
 
-        loaded_model = joblib.load("./Tree_model.joblib") 
+        loaded_model = joblib.load("./Bayes_model.joblib") 
         if test_image is not None:
             test_image = np.array(test_image)
             test_image =  cv2.cvtColor(test_image, cv2.COLOR_BGR2GRAY)
@@ -66,7 +66,7 @@ def model(option,loaded_image):
             test_image = test_image.reshape(1,40000)
             result = loaded_model.predict_proba(test_image)
     else:  
-        loaded_model = joblib.load("./LDA_model.joblib") 
+        loaded_model = joblib.load("./Bayes_model.joblib") 
 
         if test_image is not None:
             test_image = np.array(test_image)
