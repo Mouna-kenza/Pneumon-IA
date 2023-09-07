@@ -66,7 +66,7 @@ def model(option,loaded_image):
             test_image = test_image.reshape(1,40000)
             result = loaded_model.predict_proba(test_image)
     else:  
-        loaded_model = joblib.load("./Bayes_model.joblib") 
+        loaded_model = joblib.load("./LDA_model.joblib") 
 
         if test_image is not None:
             test_image = np.array(test_image)
