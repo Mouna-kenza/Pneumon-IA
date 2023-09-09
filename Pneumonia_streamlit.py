@@ -131,7 +131,7 @@ with tab1:
 
         st.warning( "⚠️ Important Notice : This application is intended solely for professional use. If you are a patient seeking medical assistance, please ensure you consult a qualified doctor for proper diagnosis and guidance.")
         st.markdown('''
-        <a href="https://www.doctolib.fr/">
+        <a href="https://www.tabibe.fr/#:~:text=L'application%20TABIBE%20est%20la,facile%20pour%20tous%20les%20%C3%A2ges.">
             <h5>➡️ Consult a Medical Professional ⬅️</h5>
         </a>''',
         unsafe_allow_html=True)
