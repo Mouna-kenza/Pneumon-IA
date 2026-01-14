@@ -4,6 +4,8 @@ import time
 import numpy as np  # np mean, np random
 import cv2
 from keras.models import load_model
+from pathlib import Path
+import sklearn
 import tensorflow as tf
 import joblib
 
@@ -18,13 +20,49 @@ def get_image(path:str)->Image:
     image = Image.open(path)
     return image
 
+HDF5_SIGNATURE = b"\x89HDF\r\n\x1a\n"
+
+
+@st.cache_resource
+def load_cnn_model():
+    model_path = Path("./cnn.h5")
+    if not model_path.exists():
+        st.error("CNN model file ./cnn.h5 was not found. Please add the model file and restart the app.")
+        st.stop()
+    header = model_path.read_bytes()[: len(HDF5_SIGNATURE)]
+    if header != HDF5_SIGNATURE:
+        st.error(
+            "CNN model file ./cnn.h5 does not look like a valid HDF5 model. If you are using Git LFS, "
+            "run `git lfs pull` (or download the model) and restart the app."
+        )
+        st.stop()
+    return load_model(model_path)
+
+
+@st.cache_resource
+def load_sklearn_model(model_path: str, model_label: str):
+    try:
+        return joblib.load(model_path)
+    except ValueError as exc:
+        message = str(exc)
+        if "incompatible dtype" in message:
+            st.error(
+                f"{model_label} model cannot be loaded because it was trained with a different "
+                "scikit-learn version. Reinstall the matching scikit-learn version or retrain "
+                "and re-export the model with your current environment "
+                f"(scikit-learn {sklearn.__version__})."
+            )
+            st.stop()
+        raise
+
+
 def model(option,loaded_image):
     loaded_image = np.array(loaded_image) 
     loaded_image = cv2.cvtColor(loaded_image, cv2.COLOR_BGR2RGB)
     test_image=Image.fromarray(loaded_image)
     if option == 'CNN': 
         
-        loaded_model = load_model("./cnn.h5")        
+        loaded_model = load_cnn_model()        
         if test_image is not None:
             test_image = tf.keras.preprocessing.image.img_to_array(test_image)
             test_image = tf.image.resize(test_image, size=(200,200))
@@ -33,7 +71,7 @@ def model(option,loaded_image):
                 
     elif option == "Decision Tree": 
 
-        loaded_model = joblib.load("./Bayes_model.joblib") 
+        loaded_model = load_sklearn_model("./Bayes_model.joblib", "Decision Tree")
         if test_image is not None:
             test_image = np.array(test_image)
             test_image =  cv2.cvtColor(test_image, cv2.COLOR_BGR2GRAY)
@@ -44,7 +82,7 @@ def model(option,loaded_image):
 
     elif option == "KNN (doesnt work with cloud version)":
 
-        loaded_model = joblib.load("./KNN_model.joblib") 
+        loaded_model = load_sklearn_model("./KNN_model.joblib", "KNN") 
         
         if test_image is not None:
             test_image = np.array(test_image)
@@ -56,7 +94,7 @@ def model(option,loaded_image):
             out = out.reshape(1,40000)
             result = loaded_model.predict_proba(out)
     elif option == "LDA":
-        loaded_model = joblib.load("./LDA_model.joblib") 
+        loaded_model = load_sklearn_model("./LDA_model.joblib", "LDA") 
 
         if test_image is not None:            
             test_image = np.array(test_image)
@@ -66,7 +104,7 @@ def model(option,loaded_image):
             test_image = test_image.reshape(1,40000)
             result = loaded_model.predict_proba(test_image)
     else:  
-        loaded_model = joblib.load("./Bayes_model.joblib") 
+        loaded_model = load_sklearn_model("./Bayes_model.joblib", "Bayes") 
 
         if test_image is not None:
             test_image = np.array(test_image)
